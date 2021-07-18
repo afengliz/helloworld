@@ -20,7 +20,7 @@ service Greeter {
   rpc GetUserInfo (GetUserRequest) returns (GetUserReply){
     option (google.api.http) = {
         post: "/v1/greeter/getuserinfo",
-        // body: "*",
+        body: "*",
     };
   }
 }

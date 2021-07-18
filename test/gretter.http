@@ -1,0 +1,5 @@
+### 查询物料
+POST http://127.0.0.1:8090/helloworld.v1.Greeter/GetUserInfo HTTP/1.1
+content-type: application/json
+
+{"name":"liyanfeng"}

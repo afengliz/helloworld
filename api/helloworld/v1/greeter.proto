@@ -23,6 +23,12 @@ service Greeter {
         body: "*",
     };
   }
+  rpc GetUserInfoBySingleFlight (GetUserRequest) returns (GetUserReply){
+    option (google.api.http) = {
+      post: "/v1/greeter/getuserinfobysingleflight",
+      body: "*",
+    };
+  }
 }
 message GetUserRequest{
   string name = 1;

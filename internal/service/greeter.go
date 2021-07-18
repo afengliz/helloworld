@@ -42,3 +42,12 @@ func  (s *GreeterService) GetUserInfo(ctx context.Context,in *v1.GetUserRequest)
 	}
 	return &v1.GetUserReply{Name: ans.Name,Age: int32(ans.Age)},nil
 }
+
+// singleFlight 的使用示例
+func (s *GreeterService) GetUserInfoBySingleFlight(ctx context.Context,in *v1.GetUserRequest) (*v1.GetUserReply, error) {
+	ans,err := s.uu.GetUserBySingleFlight(ctx,in.GetName())
+	if err != nil{
+		return nil,err
+	}
+	return &v1.GetUserReply{Name: ans.Name,Age: int32(ans.Age)},nil
+}

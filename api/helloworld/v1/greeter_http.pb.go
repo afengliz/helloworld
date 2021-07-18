@@ -19,6 +19,7 @@ const _ = http.SupportPackageIsVersion1
 
 type GreeterHTTPServer interface {
 	GetUserInfo(context.Context, *GetUserRequest) (*GetUserReply, error)
+	GetUserInfoBySingleFlight(context.Context, *GetUserRequest) (*GetUserReply, error)
 	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 }
 
@@ -26,6 +27,7 @@ func RegisterGreeterHTTPServer(s *http.Server, srv GreeterHTTPServer) {
 	r := s.Route("/")
 	r.GET("/helloworld/{name}", _Greeter_SayHello0_HTTP_Handler(srv))
 	r.POST("/v1/greeter/getuserinfo", _Greeter_GetUserInfo0_HTTP_Handler(srv))
+	r.POST("/v1/greeter/getuserinfobysingleflight", _Greeter_GetUserInfoBySingleFlight0_HTTP_Handler(srv))
 }
 
 func _Greeter_SayHello0_HTTP_Handler(srv GreeterHTTPServer) func(ctx http.Context) error {
@@ -69,8 +71,28 @@ func _Greeter_GetUserInfo0_HTTP_Handler(srv GreeterHTTPServer) func(ctx http.Con
 	}
 }
 
+func _Greeter_GetUserInfoBySingleFlight0_HTTP_Handler(srv GreeterHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, "/helloworld.v1.Greeter/GetUserInfoBySingleFlight")
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserInfoBySingleFlight(ctx, req.(*GetUserRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type GreeterHTTPClient interface {
 	GetUserInfo(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *GetUserReply, err error)
+	GetUserInfoBySingleFlight(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *GetUserReply, err error)
 	SayHello(ctx context.Context, req *HelloRequest, opts ...http.CallOption) (rsp *HelloReply, err error)
 }
 
@@ -87,6 +109,19 @@ func (c *GreeterHTTPClientImpl) GetUserInfo(ctx context.Context, in *GetUserRequ
 	pattern := "/v1/greeter/getuserinfo"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation("/helloworld.v1.Greeter/GetUserInfo"))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *GreeterHTTPClientImpl) GetUserInfoBySingleFlight(ctx context.Context, in *GetUserRequest, opts ...http.CallOption) (*GetUserReply, error) {
+	var out GetUserReply
+	pattern := "/v1/greeter/getuserinfobysingleflight"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation("/helloworld.v1.Greeter/GetUserInfoBySingleFlight"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

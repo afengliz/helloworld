@@ -1,6 +1,36 @@
 # Kratos Project Template
 
+## 燕锋的笔记
+
+### 1、Import "google/api/annotations.proto" was not found or had errors.
+
+```
+出现问题：Import "google/api/annotations.proto" was not found or had errors.
+解决方式：https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-win64.zip 下载解压后，把里面的include/google/的protobuf文件夹拷贝到kratos项目下的third_party/google文件夹下
+```
+
+### 2、生成pb文件命令
+
+```
+kratos proto client api/helloworld/v1/greeter.proto
+kratos proto client api/helloworld/v1/greeter.proto --go-http_opt=omitempty=false
+```
+
+### 3、post请求j记得加  body: "*"
+
+```
+  rpc GetUserInfo (GetUserRequest) returns (GetUserReply){
+    option (google.api.http) = {
+        post: "/v1/greeter/getuserinfo",
+        body: "*",
+    };
+  }
+```
+
+
+
 ## Install Kratos
+
 ```
 go get -u github.com/go-kratos/kratos/cmd/kratos/v2@latest
 ```

@@ -24,7 +24,7 @@ func TestUserUsecase_GetUserBySingleFlight(t *testing.T) {
 	logger := log.With(log.NewStdLogger(os.Stdout))
 	dataData, _, err := data.NewData(&conf.Data{Database:&conf.Data_Database{
 		Driver: "mysql",
-		Source: "root:123456@tcp(127.0.0.1:3306)/demo",
+		Source: "root:root@tcp(127.0.0.1:3306)/demo",
 	} }, logger)
 	if err != nil {
 		t.Fail()

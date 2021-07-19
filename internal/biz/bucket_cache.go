@@ -33,6 +33,8 @@ type bucketCache struct {
 	bSize int
 	// chan 默认大小是10
 	bChan chan string
+	// chan 默认大小是10
+	existChan chan struct{}
 	// 锁
 	rwMutex sync.RWMutex
 	// data
@@ -66,7 +68,8 @@ func (b *bucketCache) Start(ctx context.Context) error{
 }
 func (b *bucketCache) Stop(context.Context) error{
 	close(b.bChan)
-	b.log.Info("结束bucket cache")
+	<-b.existChan
+	b.log.Info("完整结束bucket cache")
 	return nil
 }
 
@@ -75,18 +78,15 @@ func (b *bucketCache) run(){
 	for item := range b.bChan {
 		b.rwMutex.Lock()
 		curIndex := time.Now().Second()% b.bSize
-		if b.oldIndex != curIndex {
-			b.oldIndex = curIndex
-			b.buckets[curIndex].clear()
-		}
 		b.rwMutex.Unlock()
 		b.buckets[curIndex].add(item)
 	}
+	b.existChan<- struct{}{}
 }
 
 // 定时重新生成localcache
 func (b *bucketCache) tickerGenBCache(ctx context.Context){
-	ticker  := time.NewTicker(30 * time.Second)
+	ticker  := time.NewTicker(1 * time.Second)
 	for{
 		select {
 		case <-ticker.C :
@@ -110,6 +110,9 @@ func (b *bucketCache) genBCache(){
 			cur = 5 + cur
 		}
 		cMap := b.buckets[cur]
+		if time.Since(cMap.lastTime).Seconds() > 5{
+			continue
+		}
 		for cKey, cVal := range cMap.dataMap {
 			if c ,ok :=tMap[cKey];ok{
 				tMap[cKey] = c + cVal
@@ -145,13 +148,19 @@ func (b *bucketCache) genBCache(){
 		b.dMap[users[i].Name] = users[i]
 		b.log.Debug("生成缓存：",users[i].Name)
 	}
-
+	if len(b.dMap)<=0{
+		b.log.Debug("当前周期无缓存生成")
+	}
 }
 
 
 type bucket struct {
+	// 互斥锁
 	mutex sync.Mutex
+	// 数据统计
 	dataMap map[string]int
+	// 最新的更新时间
+	lastTime time.Time
 }
 
 func newBucket()  *bucket {
@@ -161,16 +170,16 @@ func newBucket()  *bucket {
 func (b *bucket) add(key string){
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
+	if time.Since(b.lastTime).Seconds()>5{ // 大于5秒，直接清除
+		for item := range b.dataMap {
+			delete(b.dataMap,item)
+		}
+	}
 	if item,ok:=b.dataMap[key];ok{
 		b.dataMap[key] = item+1
 	}else{
 		b.dataMap[key] = 1
 	}
-}
-func (b *bucket) clear(){
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
-	for item := range b.dataMap {
-		delete(b.dataMap,item)
-	}
+	b.lastTime = time.Now()
+
 }

@@ -13,6 +13,11 @@ type userRepo struct {
 	log  *log.Helper
 }
 
+func (u userRepo) GetUsers(ctx context.Context, names []string) ([]*ent.User, error) {
+	users,err := u.data.db.User.Query().Where(user.NameIn(names...)).All(ctx)
+	return users,err
+}
+
 func (u userRepo) GetUser(ctx context.Context, name string) (*ent.User,error) {
 	 user,err := u.data.db.User.Query().Where(user.Name(name)).First(ctx)
 	 return user,err

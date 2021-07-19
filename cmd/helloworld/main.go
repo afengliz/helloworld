@@ -2,15 +2,16 @@ package main
 
 import (
 	"flag"
+	"helloworld/internal/pkg/bucket"
 	"os"
 
-	"helloworld/internal/conf"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"helloworld/internal/conf"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
@@ -29,7 +30,7 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server) *kratos.App {
+func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server,cs bucket.BucketCache) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -39,6 +40,7 @@ func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server) *kratos.App {
 		kratos.Server(
 			hs,
 			gs,
+			cs,
 		),
 	)
 }
@@ -73,7 +75,6 @@ func main() {
 		panic(err)
 	}
 	defer cleanup()
-
 	// start and wait for stop signal
 	if err := app.Run(); err != nil {
 		panic(err)

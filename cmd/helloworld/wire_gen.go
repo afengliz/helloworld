@@ -11,6 +11,7 @@ import (
 	"helloworld/internal/biz"
 	"helloworld/internal/conf"
 	"helloworld/internal/data"
+	"helloworld/internal/pkg/bucket"
 	"helloworld/internal/server"
 	"helloworld/internal/service"
 )
@@ -30,7 +31,8 @@ func initApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	greeterService := service.NewGreeterService(greeterUsecase, userUsecase, logger)
 	httpServer := server.NewHTTPServer(confServer, greeterService, logger)
 	grpcServer := server.NewGRPCServer(confServer, greeterService, logger)
-	app := newApp(logger, httpServer, grpcServer)
+	bucketCache := bucket.NewBucketCache(userRepo)
+	app := newApp(logger, httpServer, grpcServer, bucketCache)
 	return app, func() {
 		cleanup()
 	}, nil

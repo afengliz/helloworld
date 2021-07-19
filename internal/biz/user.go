@@ -11,6 +11,7 @@ import (
 
 type UserRepo interface {
 	GetUser(context.Context, string) (*ent.User, error)
+	GetUsers(context.Context, []string) ([]*ent.User, error)
 }
 
 type UserUsecase struct {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"helloworld/internal/pkg/bucket"
+	"helloworld/internal/biz"
 	"os"
 
 	"github.com/go-kratos/kratos/v2"
@@ -30,7 +30,7 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server,cs bucket.BucketCache) *kratos.App {
+func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server,cs biz.BucketCache) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),

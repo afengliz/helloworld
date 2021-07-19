@@ -1,10 +1,9 @@
-package bucket
+package biz
 
 import (
 	"container/heap"
 	"context"
 	"github.com/go-kratos/kratos/v2/transport"
-	"helloworld/internal/biz"
 	"helloworld/internal/utils"
 	"log"
 	"sync"
@@ -17,7 +16,7 @@ type BucketCache interface {
 	transport.Server
 }
 
-func NewBucketCache(userRepo biz.UserRepo) BucketCache {
+func NewBucketCache(userRepo UserRepo) BucketCache {
 	arr := make([]*bucket,5)
 	for i := 0; i < 5; i++ {
 		arr[i] = newBucket()
@@ -43,7 +42,7 @@ type bucketCache struct {
 	// limit
 	limit int
 	// userRepo
-	userRepo biz.UserRepo
+	userRepo UserRepo
 }
 
 func (b *bucketCache) Add(key string){

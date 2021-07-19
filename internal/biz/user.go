@@ -19,10 +19,11 @@ type UserUsecase struct {
 	log    *log.Helper
 	sGroup *singleflight.Group
 	lru    utils.LRU
+	bc     BucketCache
 }
 
-func NewUserUsecase(repo UserRepo, logger log.Logger) *UserUsecase {
-	return &UserUsecase{repo: repo, log: log.NewHelper(logger), sGroup: &singleflight.Group{},lru: utils.NewLRU(3)}
+func NewUserUsecase(repo UserRepo, logger log.Logger,bc BucketCache) *UserUsecase {
+	return &UserUsecase{repo: repo, log: log.NewHelper(logger), sGroup: &singleflight.Group{},lru: utils.NewLRU(3),bc:bc}
 }
 
 func (uc *UserUsecase) GetUser(ctx context.Context, name string) (*ent.User, error) {
@@ -52,4 +53,23 @@ func (uc *UserUsecase) GetUserBySingleFlight(ctx context.Context, name string) (
 		return nil, err
 	}
 	return ans.(*ent.User), nil
+}
+
+func (uc *UserUsecase) GetUserByBucketCache(ctx context.Context, name string) (*ent.User, error) {
+	name = strings.TrimSpace(name)
+
+	// 从lru缓存获取数据
+	cUser := uc.bc.Get(name)
+	if cUser != nil{
+		return cUser.(*ent.User),nil
+	}
+	ans,err := uc.repo.GetUser(ctx, name)
+	if err != nil{
+		return nil,err
+	}
+	if ans != nil{
+		// 设置lru缓存
+		uc.bc.Add(name)
+	}
+	return ans,nil
 }

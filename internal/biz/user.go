@@ -45,6 +45,7 @@ func (uc *UserUsecase) GetUser(ctx context.Context, name string) (*ent.User, err
 	return ans,nil
 }
 
+// single flight 写法
 func (uc *UserUsecase) GetUserBySingleFlight(ctx context.Context, name string) (*ent.User, error) {
 	ans, err, _ := uc.sGroup.Do(name, func() (interface{}, error) {
 		return uc.repo.GetUser(ctx, name)
@@ -55,12 +56,13 @@ func (uc *UserUsecase) GetUserBySingleFlight(ctx context.Context, name string) (
 	return ans.(*ent.User), nil
 }
 
+// 动态生成热点数据 缓存到本地 的做法
 func (uc *UserUsecase) GetUserByBucketCache(ctx context.Context, name string) (*ent.User, error) {
 	name = strings.TrimSpace(name)
 
-	// 从lru缓存获取数据
 	cUser := uc.bc.Get(name)
 	if cUser != nil{
+		uc.bc.Add(name)
 		return cUser.(*ent.User),nil
 	}
 	ans,err := uc.repo.GetUser(ctx, name)
@@ -68,7 +70,6 @@ func (uc *UserUsecase) GetUserByBucketCache(ctx context.Context, name string) (*
 		return nil,err
 	}
 	if ans != nil{
-		// 设置lru缓存
 		uc.bc.Add(name)
 	}
 	return ans,nil

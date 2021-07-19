@@ -30,7 +30,8 @@ func TestUserUsecase_GetUserBySingleFlight(t *testing.T) {
 		t.Fail()
 	}
 	userRepo := data.NewUserRepo(dataData, logger)
-	userUsecase := biz.NewUserUsecase(userRepo, logger)
+	bc := biz.NewBucketCache(userRepo)
+	userUsecase := biz.NewUserUsecase(userRepo, logger,bc)
 	for i := 0; i < n; i++ {
 		wg1.Add(1)
 		go func() {

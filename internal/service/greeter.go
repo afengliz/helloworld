@@ -51,3 +51,11 @@ func (s *GreeterService) GetUserInfoBySingleFlight(ctx context.Context,in *v1.Ge
 	}
 	return &v1.GetUserReply{Name: ans.Name,Age: int32(ans.Age)},nil
 }
+
+func (s *GreeterService) GetUserByBucketCache(ctx context.Context,in *v1.GetUserRequest) (*v1.GetUserReply, error) {
+	ans,err := s.uu.GetUserByBucketCache(ctx,in.GetName())
+	if err != nil{
+		return nil,err
+	}
+	return &v1.GetUserReply{Name: ans.Name,Age: int32(ans.Age)},nil
+}

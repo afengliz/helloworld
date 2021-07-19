@@ -22,6 +22,7 @@ type GreeterClient interface {
 	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 	GetUserInfo(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error)
 	GetUserInfoBySingleFlight(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error)
+	GetUserByBucketCache(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error)
 }
 
 type greeterClient struct {
@@ -59,6 +60,15 @@ func (c *greeterClient) GetUserInfoBySingleFlight(ctx context.Context, in *GetUs
 	return out, nil
 }
 
+func (c *greeterClient) GetUserByBucketCache(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error) {
+	out := new(GetUserReply)
+	err := c.cc.Invoke(ctx, "/helloworld.v1.Greeter/GetUserByBucketCache", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GreeterServer is the server API for Greeter service.
 // All implementations must embed UnimplementedGreeterServer
 // for forward compatibility
@@ -67,6 +77,7 @@ type GreeterServer interface {
 	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 	GetUserInfo(context.Context, *GetUserRequest) (*GetUserReply, error)
 	GetUserInfoBySingleFlight(context.Context, *GetUserRequest) (*GetUserReply, error)
+	GetUserByBucketCache(context.Context, *GetUserRequest) (*GetUserReply, error)
 	mustEmbedUnimplementedGreeterServer()
 }
 
@@ -82,6 +93,9 @@ func (UnimplementedGreeterServer) GetUserInfo(context.Context, *GetUserRequest) 
 }
 func (UnimplementedGreeterServer) GetUserInfoBySingleFlight(context.Context, *GetUserRequest) (*GetUserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserInfoBySingleFlight not implemented")
+}
+func (UnimplementedGreeterServer) GetUserByBucketCache(context.Context, *GetUserRequest) (*GetUserReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByBucketCache not implemented")
 }
 func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
 
@@ -150,6 +164,24 @@ func _Greeter_GetUserInfoBySingleFlight_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Greeter_GetUserByBucketCache_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).GetUserByBucketCache(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/helloworld.v1.Greeter/GetUserByBucketCache",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).GetUserByBucketCache(ctx, req.(*GetUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Greeter_ServiceDesc is the grpc.ServiceDesc for Greeter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -168,6 +200,10 @@ var Greeter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserInfoBySingleFlight",
 			Handler:    _Greeter_GetUserInfoBySingleFlight_Handler,
+		},
+		{
+			MethodName: "GetUserByBucketCache",
+			Handler:    _Greeter_GetUserByBucketCache_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

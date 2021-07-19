@@ -26,7 +26,7 @@ func initApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	greeterRepo := data.NewGreeterRepo(dataData, logger)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
 	userRepo := data.NewUserRepo(dataData, logger)
-	bucketCache := biz.NewBucketCache(userRepo)
+	bucketCache := biz.NewBucketCache(userRepo, logger)
 	userUsecase := biz.NewUserUsecase(userRepo, logger, bucketCache)
 	greeterService := service.NewGreeterService(greeterUsecase, userUsecase, logger)
 	httpServer := server.NewHTTPServer(confServer, greeterService, logger)

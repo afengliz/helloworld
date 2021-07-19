@@ -29,6 +29,12 @@ service Greeter {
       body: "*",
     };
   }
+  rpc GetUserByBucketCache (GetUserRequest) returns (GetUserReply){
+    option (google.api.http) = {
+      post: "/v1/greeter/getuserbybucketcache",
+      body: "*",
+    };
+  }
 }
 message GetUserRequest{
   string name = 1;

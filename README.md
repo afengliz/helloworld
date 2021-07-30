@@ -26,7 +26,10 @@ kratos proto client api/helloworld/v1/greeter.proto --go-http_opt=omitempty=fals
     };
   }
 ```
-
+### 4、goland 运行 main.go
+```
+需要将Program argument 选项配置为-conf ./configs
+```
 
 
 ## Install Kratos
